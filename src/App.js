@@ -9,14 +9,31 @@ import {
 } from "@material-ui/core";
 import InfoBox from "./InfoBox";
 import Map from "./Map";
+import Table from "./Table";
+import { sortData } from "./util";
+import LineGraph from "./LineGraph";
+import "leaflet/dist/leaflet.css";
 
 function App() {
   // STATE = How to write a variable in REACT  (Didn't understand and need to check it)
   const [countries, setCountries] = useState([])
   const [country, setCountry] = useState("worldwide");
-
+  const [countryInfo, setCountryInfo] = useState({});
+  const [tableData, setTableData] = useState([]);
+  const [mapCenter, setMapCenter] = useState({ lat: 34.80746, lng: -40.4796});
+  const [mapZoom, setMapZoom] = useState(3);
+  const [mapCountries, setMapCountries] = useState([]);
 
   // USEEFFECT = Runs a peice of code based on a given condition
+
+  useEffect(() => {
+    fetch("https://disease.sh/v3/covid-19/all")
+    .then(response => response.json())
+    .then(data => {
+      setCountryInfo(data);
+    });
+  }, []);
+
   useEffect(() => {
     // The code inside here will run once when the component loads and not again
     // async -> send a request, wait for it, do something with the info
@@ -31,6 +48,9 @@ function App() {
           value: country.countryInfo.iso2,  // UK, USA, FR
         }));
 
+        const sortedData = sortData(data);
+        setTableData(sortedData);
+        setMapCountries(data);
         setCountries(countries);
       });
     }
@@ -42,7 +62,27 @@ function App() {
     const countryCode = event.target.value;
 
     setCountry(countryCode);
-  }
+
+    // worldwide: https://disease.sh/v3/covid-19/all
+    // for individual country: https://disease.sh/v3/covid-19/countries/[COUNTRY_CODE]
+
+    const url = 
+    countryCode === "worldwide" ? 
+    "https://disease.sh/v3/covid-19/all" : `https://disease.sh/v3/covid-19/countries/${countryCode}`;
+
+    await fetch(url).then(response => response.json())
+    .then(data => {
+      setCountry(countryCode);
+
+      // All the data from the country response
+      setCountryInfo(data); 
+
+      setMapCenter([data.countryInfo.lat, data.countryInfo.long]);
+      setMapZoom(4);
+    });
+  };
+
+  console.log("COUNTRY INFO >>>", countryInfo);
 
   return (
     <div className="App">
@@ -72,20 +112,23 @@ function App() {
         </div>
         
         <div className="app__stats">
-            <InfoBox title="Coronavirus Cases" cases={123} total={2000} />
-            <InfoBox title="Recovered" cases={1234} total={3000} />
-            <InfoBox title="Deaths" cases={12345} total={4000} />
+            <InfoBox title="Coronavirus Cases" cases={countryInfo.todayCases} total={countryInfo.cases} />
+            <InfoBox title="Recovered" cases={countryInfo.todayRecovered} total={countryInfo.recovered} />
+            <InfoBox title="Deaths" cases={countryInfo.todayDeaths} total={countryInfo.deaths} />
         </div>
         
         {/* Map */}
-        <Map />
+        <Map countries={mapCountries} center={mapCenter} zoom={mapZoom} />
       </div>
 
-      <Card className="app__right">
+      <Card className="app__right"> 
         <CardContent>
           {/* Table */}
           <h3>Live Cases by Country</h3>
+          <Table countries={tableData} />
+          
           {/* Graph */}
+          <LineGraph />
           <h3>Worldwide new cases</h3>
         </CardContent>
       </Card>
