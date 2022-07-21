@@ -43,6 +43,9 @@ export const sortData = (data) => {
     // return sortedData.sort((a, b) => (b.cases - a.cases))  // Descending, Ascending is a - b
 }
 
+export const prettyPrintStat = (stat) => 
+    stat ? `+${numeral(stat).format("0.0a")}` : "+0";
+
 
 // Draw circles on the map with interactive tooltop
 export const showDataOnMap = (data, casesType='cases') => {
@@ -57,7 +60,7 @@ export const showDataOnMap = (data, casesType='cases') => {
             }
         >
             <Popup>
-                <div>
+                <div className="info-container">
                     <div
                         className="info-flag"
                         style={{ backgroundImage: `url(${country.countryInfo.flag})` }}
