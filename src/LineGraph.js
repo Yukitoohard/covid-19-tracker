@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { Line } from 'react-chartjs-2';
 import numeral from 'numeral';
+import 'chartjs-adapter-moment';
+import 'chartjs-adapter-date-fns';
+
 // import './LineGraph.css'
 // import {Chart as ChartJS} from 'chart.js/auto'
 
@@ -8,9 +11,9 @@ import {
     Chart as ChartJS,
     CategoryScale,
     LinearScale,
+    LineController,
     PointElement,
     LineElement,
-    
     Title,
     Tooltip,
     Legend,
@@ -19,13 +22,37 @@ import {
 ChartJS.register(
     CategoryScale,
     LinearScale,
+    LineController,
     PointElement,
     LineElement,
-    
     Title,
     Tooltip,
     Legend
 );
+
+// const options = {
+//     maintainAspectRatio: false,
+//     aspectRatio: 0.4,
+//     responsive: true,
+//     title: {
+//         display: true,
+//         text: 'X-axis Example based on Time'
+//     },
+//     scales: {
+//         xAxes: {
+//             // type: "time",
+//             // time: {
+//             //     format: "lll",
+//             //     tooltipFormat: 'lll'
+//             // },
+//             ticks: {
+//                 autoSkip: true,
+//                 maxRotation: 0,
+//                 minRotation: 0
+//             }
+//         }
+//     }
+// }
 
 const options = {
     legend: {
@@ -38,7 +65,7 @@ const options = {
     },
     maintainAspectRatio: false,
     tooltips: {
-        mode: "index",
+        mode: "index", 
         intersect: false,
         callbacks: {
             label: function (tooltipItem, data) {
@@ -47,14 +74,14 @@ const options = {
         },
     },
     scales: {
-        xAxes: 
-            {
-                type: "time",
-                time: {
-                    format: "MM/DD/YY",
-                    tooltipFormat: "ll",
-                },
-            },
+        // xAxes: 
+        //     {
+        //         type: 'time',
+        //         time: {
+        //             format: "MM/DD/YY",
+        //             tooltipFormat: "ll",
+        //         },
+        //     },
         
         yAxes: 
             {
@@ -79,25 +106,25 @@ const buildChartData = (data, casesType) => {
     for (let date in data.cases) {
         // data[casesType].forEach(date => {
         if (lastDataPoint) {
-            const newDataPoint = {
+            let newDataPoint = {
                 x: date,
-                y: data[casesType][date] - lastDataPoint
-            }
-            chartData.push(newDataPoint)
+                y: data[casesType][date] - lastDataPoint,
+            };
+            chartData.push(newDataPoint);
         }
         lastDataPoint = data[casesType][date];
-    };
+    }
     return chartData;
 };
 
-function LineGraph({ casesType }) {
+function LineGraph({ casesType = "cases" }, ...props) {
     const [data, setData] = useState({});
 
     // https://disease.sh/v3/covid-19/historical/all?lastdays=120
 
     useEffect(() => {
         const fetchData = async () => {
-            await fetch("https://disease.sh/v3/covid-19/historical/all?lastdays=120")
+            await fetch("https://disease.sh/v3/covid-19/historical/all?lastdays=30")
                 .then((response) => {
                     return response.json();
                 })
@@ -115,7 +142,7 @@ function LineGraph({ casesType }) {
 
 
     return (
-        <div>
+        <div className={props.className}>
             {data?.length > 0 && (
                 <Line
                     data={{

@@ -1,5 +1,6 @@
 .infoBox {
     flex: 1;
+    cursor: pointer;
 }
 
 .infoBox:not(:last-child) {
@@ -12,6 +13,10 @@
 
 .infoBox--red {
     border-color: red;
+}
+
+.infoBox__cases--green {
+    color: lightgreen !important;
 }
 
 .infoBox__cases {
